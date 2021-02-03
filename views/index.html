@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title>Products list</title>
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+                <h1 class="display-4">Products list</h1>
+                <p class="lead">
+                    A simple list of products retrieved from
+                    <a href="https://haelpl.myshopify.com/">haelpl.myshopify.com</a>
+                </p>
+            </div>
+
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">title</th>
+                    <th scope="col">metafields</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    <% products.forEach( function(product, key) { %>
+                  <tr>
+                    <th scope="row"><%= key + 1%></th>
+                    <td><%= product.node.title %></td>
+                    <td>
+                        <table class="table">
+                        <% product.node.metafields.edges.forEach( function(metafield) { %>
+                            <tr>
+                                <td><%= metafield.node.key %></td>
+                                <td><%= metafield.node.value %></td>
+                            </tr>
+                        <% }); %>
+                        </table>
+                    </td>
+                  </tr>
+                  <% }); %>
+                
+                </tbody>
+              </table>
+            </div>
+        </div>
+    </body>
+</html>
