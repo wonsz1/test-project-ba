@@ -9,8 +9,6 @@ dotenv.config();
 const app = new Koa();
 const router = new koaRouter();
 
-const user = 'd5c7cd971afebcd7d7a3e68835843d88';
-const pass = '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';
 const token = Buffer.from(`${process.env.API_USER}:${process.env.API_PASS}`, 'utf8').toString('base64');
 
 app.use(async (ctx, next) => {
