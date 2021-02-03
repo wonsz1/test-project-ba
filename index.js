@@ -16,7 +16,7 @@ app.use(async (ctx, next) => {
         await next();
     } catch (err) {
         console.error(err);
-        ctx.body = "Ops, something wrong happened:<br>" + err.message;
+        ctx.body = "Ops, something wrong happened: " + err.message;
     }
 });
 
