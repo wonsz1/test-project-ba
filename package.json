@@ -3,9 +3,11 @@
     "axios": "^0.21.1",
     "dotenv": "^8.2.0",
     "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
     "koa-ejs": "^4.3.0",
     "koa-router": "^10.0.0",
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.7",
+    "vue": "^3.0.5"
   },
   "name": "test-project-ba",
   "version": "1.0.0",
