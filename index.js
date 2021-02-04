@@ -87,18 +87,6 @@ router.post('products', '/', async (ctx) => {
     return ctx.render('index', response);
 });
 
-router.get('products-list', '/products-list', async (ctx) => {
-    const result = await axios.get("https://haelpl.myshopify.com/admin/api/2021-01/products.json", {
-        headers: {
-          'Authorization': `Basic ${token}`
-        }
-      });
-
-    return ctx.render('products-list', {
-        products: result.data.products,
-    });
-});
-
 app.use(router.routes()).use(router.allowedMethods());
 
 const PORT = process.env.PORT || 3000;
