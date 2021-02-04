@@ -24,6 +24,35 @@ function productListQuery(productsPerPage, metafieldsPerPage) {
       }`;
 }
 
+function bulkProductListQuery(metafieldsPerPage) {
+  return `mutation {
+    bulkOperationRunQuery(
+      query:"""
+      {
+        products() {
+          edges {
+            node {
+              id
+              title
+            }
+          }
+        }
+      }
+      """
+    ) {
+      bulkOperation {
+        id
+        status
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }`;
+}
+
 module.exports = {
-  productListQuery: productListQuery
+  productListQuery: productListQuery,
+  bulkProductListQuery: bulkProductListQuery
 }

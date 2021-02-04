@@ -33,7 +33,7 @@ render(app, {
 router.get('products', '/:products_per_page?/:metafields_per_page?', async (ctx) => {
     const productsPerPage = ctx.params.products_per_page || 10;
     const metafieldsPerPage = ctx.params.metafields_per_page || 10;
-    const query = graphqlQuery.productListQuery(productsPerPage, metafieldsPerPage);
+    const query = graphqlQuery.bulkProductListQuery(metafieldsPerPage);
 
       const result = await axios.post(
         "https://haelpl.myshopify.com/admin/api/2021-01/graphql.json",
@@ -45,9 +45,11 @@ router.get('products', '/:products_per_page?/:metafields_per_page?', async (ctx)
             }
         }
     );
+console.log(result.data);
 
     return ctx.render('index', {
-        products: result.data.data.products.edges,
+        //products: result.data.data.products.edges,
+        products: [],
         productsPerPage: productsPerPage,
         metafieldsPerPage: metafieldsPerPage
     });
