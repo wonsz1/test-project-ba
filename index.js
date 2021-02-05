@@ -6,6 +6,7 @@ const koaRouter = require('koa-router');
 const dotenv = require('dotenv');
 const koaBody = require('koa-body');
 const graphqlQuery = require('./helpers/graphql_query');
+const readline = require('readline');
 
 dotenv.config();
 const app = new Koa();
@@ -35,17 +36,53 @@ router.get('products', '/:products_per_page?/:metafields_per_page?', async (ctx)
     const metafieldsPerPage = ctx.params.metafields_per_page || 10;
     const query = graphqlQuery.bulkProductListQuery(metafieldsPerPage);
 
-      const result = await axios.post(
+    const currentBulkOperation = await axios.post(
         "https://haelpl.myshopify.com/admin/api/2021-01/graphql.json",
-        query,
+        graphqlQuery.currentBulkOperation(),
         {
             headers: {
                 "Content-Type": "application/graphql",
                 'Authorization': `Basic ${token}`,
             }
         }
-    );
-console.log(result.data);
+    ); 
+
+console.log(currentBulkOperation.data.data.currentBulkOperation);
+
+    if(currentBulkOperation.data.data.currentBulkOperation.status === "COMPLETED") {
+        const resultDataFile = await axios.get(currentBulkOperation.data.data.currentBulkOperation.url, {responseType: 'stream'});
+    
+            const rl = readline.createInterface({
+                input: resultDataFile.data,
+                crlfDelay: Infinity
+              });
+
+              console.log(`readline.createInterfac----`);
+              let products = [];
+              let tmp = {};
+              for await (const line of rl) {
+                // Each line in input.txt will be successively available here as `line`.
+                tmp = JSON.parse(line);
+                if(typeof tmp.title !== 'undefined') {
+                   products.push(tmp); 
+                } else {
+                    const last = products.length - 1;
+                    if(typeof products[last]['metafield'] === 'undefined') {
+                        products[last]['metafield'] = [];
+                    }
+                    products[last]['metafield'].push(tmp);
+                }
+              }
+
+              return ctx.render('index', {
+                products: products,
+                productsPerPage: productsPerPage,
+                metafieldsPerPage: metafieldsPerPage
+            });
+    } else {
+        console.log('---Running---');
+        console.log(currentBulkOperation.data);
+    }
 
     return ctx.render('index', {
         //products: result.data.data.products.edges,

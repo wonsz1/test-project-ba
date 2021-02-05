@@ -14,7 +14,7 @@ function productListQuery(productsPerPage, metafieldsPerPage) {
                         value
                     }
                 }
-            }
+              }
             }
           }
           pageInfo {
@@ -27,13 +27,22 @@ function productListQuery(productsPerPage, metafieldsPerPage) {
 function bulkProductListQuery(metafieldsPerPage) {
   return `mutation {
     bulkOperationRunQuery(
-      query:"""
+     query: """
       {
-        products() {
+        products {
           edges {
             node {
               id
               title
+              metafields {
+                edges {
+                    node {
+                        namespace
+                        key
+                        value
+                    }
+                }
+              }
             }
           }
         }
@@ -52,7 +61,20 @@ function bulkProductListQuery(metafieldsPerPage) {
   }`;
 }
 
+function currentBulkOperation() {
+  return `{
+    currentBulkOperation {
+      status
+      errorCode
+      completedAt
+      objectCount
+      url
+    }
+  }`;
+}
+
 module.exports = {
   productListQuery: productListQuery,
-  bulkProductListQuery: bulkProductListQuery
+  bulkProductListQuery: bulkProductListQuery,
+  currentBulkOperation: currentBulkOperation
 }

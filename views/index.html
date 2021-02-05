@@ -41,13 +41,13 @@
                     <% products.forEach( function(product, key) { %>
                   <tr>
                     <th scope="row"><%= key + 1%></th>
-                    <td><%= product.node.title %></td>
+                    <td><%= product.title %></td>
                     <td>
                         <table class="table">
-                        <% product.node.metafields.edges.forEach( function(metafield) { %>
+                        <% product.metafield.forEach( function(metafield) { %>
                             <tr>
-                                <td><%= metafield.node.key %></td>
-                                <td><%= metafield.node.value %></td>
+                                <td><%= metafield.key %></td>
+                                <td><%= metafield.value %></td>
                             </tr>
                         <% }); %>
                         </table>
