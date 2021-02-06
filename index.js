@@ -31,74 +31,45 @@ render(app, {
     viewExt: 'html',
 });
 
-router.get('products', '/:products_per_page?/:metafields_per_page?', async (ctx) => {
-    const productsPerPage = ctx.params.products_per_page || 10;
-    const metafieldsPerPage = ctx.params.metafields_per_page || 10;
-    const query = graphqlQuery.bulkProductListQuery(metafieldsPerPage);
+router.get('products', '/', async (ctx) => {
+    let currentBulkOperation = await callBulkOperation(graphqlQuery.currentBulkOperation());
 
-    const currentBulkOperation = await axios.post(
-        "https://haelpl.myshopify.com/admin/api/2021-01/graphql.json",
-        graphqlQuery.currentBulkOperation(),
-        {
-            headers: {
-                "Content-Type": "application/graphql",
-                'Authorization': `Basic ${token}`,
-            }
-        }
-    ); 
-
-console.log(currentBulkOperation.data.data.currentBulkOperation);
-
-    if(currentBulkOperation.data.data.currentBulkOperation.status === "COMPLETED") {
-        const resultDataFile = await axios.get(currentBulkOperation.data.data.currentBulkOperation.url, {responseType: 'stream'});
-    
-            const rl = readline.createInterface({
-                input: resultDataFile.data,
-                crlfDelay: Infinity
-              });
-
-              console.log(`readline.createInterfac----`);
-              let products = [];
-              let tmp = {};
-              for await (const line of rl) {
-                // Each line in input.txt will be successively available here as `line`.
-                tmp = JSON.parse(line);
-                if(typeof tmp.title !== 'undefined') {
-                   products.push(tmp); 
-                } else {
-                    const last = products.length - 1;
-                    if(typeof products[last]['metafield'] === 'undefined') {
-                        products[last]['metafield'] = [];
-                    }
-                    products[last]['metafield'].push(tmp);
-                }
-              }
-
-              return ctx.render('index', {
-                products: products,
-                productsPerPage: productsPerPage,
-                metafieldsPerPage: metafieldsPerPage
-            });
-    } else {
-        console.log('---Running---');
-        console.log(currentBulkOperation.data);
+    if(((Date.now() - Date.parse(currentBulkOperation.data.data.currentBulkOperation.completedAt))/ 60000) > 1) {
+        //refresh query
+        await callBulkOperation(graphqlQuery.bulkProductListQuery());
     }
 
+    currentBulkOperation = await checkStatus();
+
+    let products = await readFile(currentBulkOperation);
+
     return ctx.render('index', {
-        //products: result.data.data.products.edges,
-        products: [],
-        productsPerPage: productsPerPage,
-        metafieldsPerPage: metafieldsPerPage
+        products: products
     });
 });
 
+/**
+ * wait till bulk operation status is competed, with 2s interval checks
+ */
+async function checkStatus() {
+    let currentBulkOperation = await callBulkOperation(graphqlQuery.currentBulkOperation());
+    if(currentBulkOperation.data.data.currentBulkOperation.status !== "COMPLETED") {
+        await new Promise(resolve => {
+            setTimeout(resolve, 2000)
+        });
 
-router.post('products', '/', async (ctx) => {
-    const productsPerPage = ctx.request.body.products_per_page || 10;
-    const metafieldsPerPage = ctx.request.body.metafields_per_page || 10;
-    const query = graphqlQuery.productListQuery(productsPerPage, metafieldsPerPage);
+        return checkStatus();
+    } 
 
-      const result = await axios.post(
+    return currentBulkOperation;
+}
+
+/**
+ * call GraphQL
+ * @param {*} query 
+ */
+function callBulkOperation(query) {
+    return axios.post(
         "https://haelpl.myshopify.com/admin/api/2021-01/graphql.json",
         query,
         {
@@ -108,21 +79,38 @@ router.post('products', '/', async (ctx) => {
             }
         }
     );
+}
 
-    let response = {
-        productsPerPage: productsPerPage,
-        metafieldsPerPage: metafieldsPerPage
-    };
+/**
+ * read file from shopify api line by line
+ * metafields are in separate lines, after each products, so they can be add to last product in array
+ * 
+ * @param {*} currentBulkOperation 
+ */
+async function readFile(currentBulkOperation) {
+    const resultDataFile = await axios.get(currentBulkOperation.data.data.currentBulkOperation.url, {responseType: 'stream'});
+    
+    const rl = readline.createInterface({
+        input: resultDataFile.data,
+        crlfDelay: Infinity
+    });
 
-    if(result.data.data) {
-        response.products = result.data.data.products.edges;
-    } else {
-        ctx.state.message = result.data.errors[0].message;
-        response.products = [];
+    let products = [];
+    let tmp = {};
+
+    for await (const line of rl) {
+        // Each line will be successively available here as `line`.
+        tmp = JSON.parse(line);
+        //check if current line is product or metafield
+        if(typeof tmp.title !== 'undefined') {
+            tmp['metafield'] = [];
+            products.push(tmp); 
+        } else {
+            products[products.length - 1]['metafield'].push(tmp);
+        }
     }
-
-    return ctx.render('index', response);
-});
+    return products;
+}
 
 app.use(router.routes()).use(router.allowedMethods());
 

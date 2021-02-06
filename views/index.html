@@ -17,17 +17,6 @@
             </div>
 
             <%- include('./template/messages')-%>
-            <form method="POST" action="#" class="mb-6">
-                <div class="mb-3">
-                    <label for="metadataAmount" class="form-label">Metadata amount</label>
-                    <input type="number" name="metafields_per_page" class="form-control" id="metadataAmount" max="50" value=<%= metafieldsPerPage %>>
-                </div>
-                <div class="mb-3">
-                    <label for="productsAmount" class="form-label">Products amount</label>
-                    <input type="number" name="products_per_page" class="form-control" id="productsAmount" max="250" value=<%= productsPerPage %>>
-                </div>
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
 
             <table class="table">
                 <thead>

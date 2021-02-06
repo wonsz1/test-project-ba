@@ -24,7 +24,7 @@ function productListQuery(productsPerPage, metafieldsPerPage) {
       }`;
 }
 
-function bulkProductListQuery(metafieldsPerPage) {
+function bulkProductListQuery() {
   return `mutation {
     bulkOperationRunQuery(
      query: """
